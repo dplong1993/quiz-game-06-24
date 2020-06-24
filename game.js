@@ -1,36 +1,69 @@
 import { getClue as getClueFromCallback } from './callback-version.js'
-
+import { getClue as getClueFromPromise } from './promise-version.js'
+import { getClue as getClueFromAsyncFunction } from './async-await-version.js'
 window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('score').innerHTML = 0;
   const useCbButton = document.getElementById('use-callback');
   useCbButton.addEventListener('click', (event) => {
     getClueFromCallback((error, clue) => {
       if(error !== null) console.error(error);
       else {
-        const {question, answer, value, categoryTitle, invalidCount} = clue;
-        document.getElementById('question').innerHTML = question;
-        document.getElementById('answer').innerHTML = answer;
-        document.getElementById('value').innerHTML = value;
-        document.getElementById('category-title').innerHTML = categoryTitle;
-        document.getElementById('invalid-count').innerHTML = invalidCount;
-
-
+        applyClues(clue);
       }
     });
   });
+
+  const usePromiseButton = document.getElementById("use-promise");
+  usePromiseButton.addEventListener('click', (event)=>{
+      getClueFromPromise()
+      .then(clue =>{
+        applyClues(clue);
+      })
+      .catch(error =>{
+        console.log("Error", error.message);
+      })
+  });
+
+  const useAsyncButton = document.getElementById("use-async-await");
+  useAsyncButton.addEventListener('click', async (event)=>{
+    try{
+      const clue = await getClueFromAsyncFunction()
+      applyClues(clue);
+    } catch (error){
+        console.log("Error", error.message);
+    }
+  });
+
+  document
+    .getElementById('check-response')
+    .addEventListener('click', event => {
+      const playerRes = document.getElementById('player-response');
+      const answer = document.getElementById('answer');
+      const pointValue = document.getElementById('value');
+      const playerScore = document.getElementById('score');
+
+      if(playerRes.value.toLowerCase().trim() === answer.innerHTML.toLowerCase().trim()) {
+        playerScore.innerHTML = Number(playerScore.innerHTML) + Number(pointValue.innerHTML);
+      } else {
+        playerScore.innerHTML = Number(playerScore.innerHTML) - Number(pointValue.innerHTML);
+      }
+      answer.classList.remove('is-hidden');
+      document.getElementById('check-response').classList.add('is-hidden');
+  });
 });
 
-// import { getClue as getClueFromCallback } from './callback-version.js'
+function applyClues(clue){
+  document.getElementById('check-response').classList.remove('is-hidden');
+  document.getElementById('player-response').innerHTML = '';
+  document.getElementById('answer').classList.add('is-hidden')
 
-// document
-//   .getElementById('use-callback')
-//   .addEventListener('click', () => {
-//     getClueFromCallback((err, clue) => {
-//       if (err !== null) return console.error(err);
+  const {question, answer, value, category, invalidCount} = clue;
 
-//       document.getElementById('answer').innerHTML = clue.answer;
-//       document.getElementById('value').innerHTML = clue.value;
-//       document.getElementById('category-title').innerHTML = clue.category.title;
-//       document.getElementById('invalid-count').innerHTML = clue.invalid_count;
-//       document.getElementById('question').innerHTML = clue.question;
-//     });
-//   });
+  console.log(clue);
+  document.getElementById('question').innerHTML = question;
+  document.getElementById('answer').innerHTML = answer;
+  document.getElementById('value').innerHTML = value;
+  document.getElementById('category-title').innerHTML = category.title;
+  document.getElementById('invalid-count').innerHTML = invalidCount;
+
+}
